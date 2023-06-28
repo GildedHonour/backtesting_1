@@ -1,0 +1,5 @@
+.venv
+personal_notes/
+*.html
+*.ipynb
+.ipynb_checkpoints
