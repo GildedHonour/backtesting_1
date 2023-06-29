@@ -2,6 +2,25 @@ import pandas as pd
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import GOOG
+import yfinance as yf
+import pandas as pd
+
+SYMBOLS = ['SPY', 'F', 'AMZN', 'AAPL', 'QQQ', 'BAC', 'T', 'IWM', 'PYPL', 'HYG', 'MSFT', 'GOOGL', 'PFE', 'PBR', 'VALE', 'CSCO', 'BABA', 'META', 'ITUB', 'PCG', 'SYF', 'AAL', 'VZ', 'XOM', 'ORCL', 'EFA', 'GOLD', 'WFC', 'BBD', 'TEVA', 'CMCSA', 'GM', 'VTRS', 'DIS', 'KO']
+
+# adjust the dates if needed
+# `yfinance` would have to have them too
+data = yf.download(SYMBOLS, start='2022-01-01', end='2023-01-01')
+
+
+def get_data_frame_by_symbol(sym):
+    # convert into the correct format
+    srs = []
+    for h in ['Open', 'High', 'Low', 'Close', 'Volume']:
+      k = (h, sym,)
+      srs.append(pd.Series(data[k], name=h))
+
+    return pd.concat(srs, axis=1)
+
 
 class Strategy1(Strategy):
     def init(self):
@@ -61,10 +80,12 @@ class Strategy1(Strategy):
                 # Exit the position at closing price
                 self.sell()
 
+
 class Backtest1(Backtest):
-    def __init__(self):
+    def __init__(self, sym):
         super().__init__(
-            GOOG,
+            # GOOG,
+            sym,
             Strategy1,
             cash=100000,
             commission=0.0,
@@ -72,7 +93,21 @@ class Backtest1(Backtest):
             trade_on_close=True
         )
 
-bt = Backtest1()
+
+
+# 1
+# the standard `GOOG` DataFrame imported from `backtesting.test`
+# bt = Backtest1(GOOG)
+
+# or
+# 2
+sym = 'AMZN'
+sym_df = get_data_frame_by_symbol()
+bt = Backtest1(sym_df)
+
+#
+# results
+#
 results = bt.run()
 print(results)
 bt.plot()
