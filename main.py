@@ -101,8 +101,8 @@ class Backtest1(Backtest):
 
 # or
 # 2
-sym = 'AMZN'
-sym_df = get_data_frame_by_symbol()
+sym = 'PYPL'
+sym_df = get_data_frame_by_symbol(sym)
 bt = Backtest1(sym_df)
 
 #
