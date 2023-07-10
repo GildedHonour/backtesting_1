@@ -14,7 +14,6 @@ end_date = datetime(2023, 7, 31)
 # Fetch AAPL historical data from Yahoo Finance using yfinance
 data = yf.download('AAPL', start=start_date, end=end_date)
 
-# Define the MyTema strategy
 class MyTema(Strategy):
     def init(self):
         self.tema_values = []
@@ -33,17 +32,16 @@ class MyTema(Strategy):
             # Close the position on the next trading day
             self.position.close()
 
-# Create and run the backtest
+
+
+
 bt = Backtest(data, MyTema)
 results = bt.run()
 
-# Get the number of trades
-num_trades = len(results["_trades"])
-
-# Print the number of trades
-print("trades:", num_trades)
+print("trades:", len(results["_trades"]))
 print(results["_trades"])
 
+# graph
 tema_values = results._strategy.tema_values
 tema_values = tema_values[-len(data):]
 tema_df = pd.DataFrame({'Date': data.index[-len(tema_values):], 'TEMA': tema_values})
