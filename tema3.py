@@ -1,42 +1,47 @@
-import yfinance as yf
 import pandas as pd
+from datetime import datetime
 from backtesting import Backtest, Strategy
 import talib
+import yfinance as yf
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
-# SYMBOLS = ['SPY', 'F', 'AMZN', 'AAPL', 'QQQ', 'BAC', 'T', 'IWM', 'PYPL', 'HYG', 'MSFT', 'GOOGL', 'PFE', 'PBR', 'VALE', 'CSCO', 'BABA', 'META', 'ITUB', 'PCG', 'SYF', 'AAL', 'VZ', 'XOM', 'ORCL', 'EFA', 'GOLD', 'WFC', 'BBD', 'TEVA', 'CMCSA', 'GM', 'VTRS', 'DIS', 'KO']
-data = yf.download('AMZN', start='2023-05-01', end='2023-07-31')
 
+# Define the start and end dates
+start_date = datetime(2023, 5, 1)
+end_date = datetime(2023, 7, 31)
+
+# Fetch AAPL historical data from Yahoo Finance using yfinance
+data = yf.download('AAPL', start=start_date, end=end_date)
+
+# Define the MyTema strategy
 class MyTema(Strategy):
     def init(self):
         self.tema_values = []
 
     def next(self):
-        if len(self.data.Close) < 4:
+        if len(self.data) < 4:
             return
 
-        tema = talib.TEMA(self.data.Close, timeperiod=4)
+        tema = talib.TEMA(self.data['Close'], timeperiod=4)
         self.tema_values.append(tema[-1])
 
-        if self.data.Close[-2] < tema[-2] and self.data.Close[-1] > tema[-1]:
+        if self.data['Close'][-2] < tema[-2] and self.data['Close'][-1] > tema[-1]:
             self.buy()
-        elif self.position:
-            self.sell()
 
+        if self.position:
+            # Close the position on the next trading day
+            self.position.close()
 
-        # (?)
-        # one, other, or both: 
-        # if self.data.index[-1].weekday() == 4 and self.position:
-        #
-        if len(self.data.Close) > 1 and self.position:
-            self.sell()
-
-
+# Create and run the backtest
 bt = Backtest(data, MyTema)
 results = bt.run()
 
-print("trades: ", len(results["_trades"]))
+# Get the number of trades
+num_trades = len(results["_trades"])
+
+# Print the number of trades
+print("trades:", num_trades)
 print(results["_trades"])
 
 tema_values = results._strategy.tema_values
@@ -56,5 +61,3 @@ mpf.plot(combined_df, type='candle', style=mpl_style, title='Triple Exponential 
          addplot=mpf.make_addplot(tema_df['TEMA'], color='red'), scale_width_adjustment=dict(lines=0.1))
 
 plt.show()
-
-
